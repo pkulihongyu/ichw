@@ -74,7 +74,6 @@ else:
 因此按如下方式定义X的补码：
 
 ![](http://latex.codecogs.com/gif.latex?\\[X]=\left\{\begin{array}{l@{\quad:\quad}l}X&0≤X≤2^{N-1}-1\\2^N-|X|&-2^{N-1}≤X<0\end{array}\right.)
-~~注：作者捣鼓了半天也没弄出来，请助教老师指正~~
 
 通过解释器/编译器将负数以二进制补码的形式表示，可以巧妙利用溢出，实现加法和减法的统一，简化CPU的电路设计。
 
