@@ -16,7 +16,7 @@ def god(program, input):
 	if (program halts on input):
 		return True
 	else:
-        return False
+        	return False
 ```
 现在构造一个“撒旦算法”，它借助于前述的“上帝算法”
 ```
