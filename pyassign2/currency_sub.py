@@ -37,7 +37,8 @@ def currency_response(currency_from, currency_to, amount_from):
     Precondition: amount_from is a float"""
 
     data = {'currency_from': currency_from,
-            'currency_to': currency_to, 'amount_from': amount_from}
+            'currency_to': currency_to,
+            'amount_from': amount_from}
     doc = urlopen('http://cs1110.cs.cornell.edu/2016fa/a1server.php?' +
       'from={currency_from}&to={currency_to}&amt={amount_from}'.format(**data))
     docstr = doc.read()    # the content on the website as bianry stream
@@ -189,17 +190,18 @@ def test_exchange():
         ('USD', 'EUR', 2.5): 2.1589225,
         ('CNY', 'JPY', 6.66): 108.27590665635,
         ('USD', 'CNY', 100.0): 685.21,
-        ('KPW', 'KRW', 0.0): 0.0,
+        ('KPW', 'KRW', 0.0): 0.0
     }
 
     for datum in data.keys():
         assert exchange(*datum) == data[datum]
 
-    inv_data = [('USD', 'EUR', 'not'),
-                ('not', 'EUR', 2.5), ('USD', 'not', 2.5)]
-    for inv_datum in inv_data:
+    invalid_data = [('USD', 'EUR', 'not'),
+                ('not', 'EUR', 2.5),
+                ('USD', 'not', 2.5)]
+    for invalid_datum in invalid_data:
         # a != a implies a == float('nan')
-        assert exchange(*inv_datum) != exchange(*inv_datum)
+        assert exchange(*invalid_datum) != exchange(*invalid_datum)
 
 
 def test_all():
