@@ -122,6 +122,9 @@ def exchange(currency_from, currency_to, amount_from):
 
 
 def main():
+    """enable that the user can input arguments endlessly to call 'exchange'
+    use 'ctrl+c' to stop"""
+
     while True:
         try:
             currency_from, currency_to, amount_from = (
