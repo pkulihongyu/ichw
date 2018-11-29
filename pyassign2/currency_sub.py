@@ -1,15 +1,15 @@
-'''currency_sub.py: Module for currency exchange
+"""currency_sub.py: Module for currency exchange
 
-This module provides several string parsing functions to implement a 
-simple currency exchange routine using an online currency service. 
-The primary function in this module is exchange
+This module provides several string parsing functions to implement a
+simple currency exchange routine using an online currency service.
 
-programming using the method given by Cornell
+The primary function named 'exchange' will take a tentive check on the
+arguments, while the other functions will completely depend on the website.
+
 __author__ = 'Li Hongyu'
 __pkuid__ = '1700017785'
 __email__ = 'hongyuli@pku.edu.cn'
-'''
-
+Programming using the method given by Cornell"""
 
 from urllib.request import urlopen
 
@@ -36,11 +36,11 @@ def currency_response(currency_from, currency_to, amount_from):
     Parameter amount_from: amount of currency to convert
     Precondition: amount_from is a float"""
 
-    data = {'currency_from': currency_from,
-            'currency_to': currency_to,
-            'amount_from': amount_from}
+    data = {'from': currency_from,
+            'to': currency_to,
+            'amt': amount_from}
     doc = urlopen('http://cs1110.cs.cornell.edu/2016fa/a1server.php?' +
-      'from={currency_from}&to={currency_to}&amt={amount_from}'.format(**data))
+                  'from={from}&to={to}&amt={amt}'.format(**data))
     docstr = doc.read()    # the content on the website as bianry stream
     doc.close()
     jstr = docstr.decode()  # convert the content into json string
@@ -68,15 +68,14 @@ def get_to(json):
 
 
 def get_error(json):
-    '''Returns: the error information if an error happens.
+    """Returns: the error information if an error happens.
 
     Given a JSON response to a currency query, this returns the string
     inside double quotes (") immediately following the keyword "error".
     Returns an empty string if the JSON is the result of a valid query.
 
     Parameter json: a json string to parse
-    Precondition: json is the response to a currency query
-    '''
+    Precondition: json is the response to a currency query"""
 
     left = json.find('"error"')
     error = json[left + 11:len(json) - 3]
@@ -91,7 +90,8 @@ def exchange(currency_from, currency_to, amount_from):
     returned represents the amount in currency currency_to.
 
     The value returned has type float.
-    For invalid query, return float('nan') and print error information
+    For invalid query, print error information and return float('nan')
+    to avoid exception when using this function to calculate.
 
     Parameter currency_from: the currency on hand
     Precondition: currency_from is a string for a valid currency code
@@ -100,18 +100,40 @@ def exchange(currency_from, currency_to, amount_from):
     Precondition: currency_to is a string for a valid currency code
 
     Parameter amount_from: amount of currency to convert
-    Precondition: amount_from is a float"""
+    Precondition: amount_from is a non-negative float"""
+
+    # check the input tentively
+    if type(currency_from) != str or type(currency_to) != str \
+            or len(currency_from) != 3 or len(currency_to) != 3:
+        print('ERROR: currency_from and currency_to must be' +
+              ' standard Currency Symbol in type str.')
+        return float('nan')
+    if type(amount_from) not in (float, int) or amount_from < 0:
+        print('ERROR: amount_from must be non-negative float (or int).')
+        return float('nan')
 
     json = currency_response(currency_from, currency_to, amount_from)
     amount_to = get_to(json)
     if amount_to:   # valid query
         return float(amount_to)
     # invalid query
-    if __name__ != '__main__':
-        # provide this notice to users,
-        # but won't print anything when testing the module
-        print('ERROR:', get_error(json))
+    print('ERROR:', get_error(json))
     return float('nan')
+
+
+def main():
+    while True:
+        try:
+            currency_from, currency_to, amount_from = (
+                input('The currency on hand: '),
+                input('The currency to convert to : '),
+                float(input('The amount of currency to convert: '))
+                )
+        except ValueError:
+            print('ERROR: amount_from must be non-negative float (or int).\n')
+        else:
+            print(exchange(currency_from, currency_to, amount_from))    
+            print()
 
 
 ##########################
@@ -125,18 +147,29 @@ def test_currency_response():
     return right answers for different arguments"""
 
     data = {
+        # valid queries
         ('USD', 'EUR', 2.5): '{ "from" : "2.5 United States Dollars", \
 "to" : "2.1589225 Euros", "success" : true, "error" : "" }',
         ('CNY', 'JPY', 6.66): '{ "from" : "6.66 Chinese Yuan", \
 "to" : "108.27590665635 Japanese Yen", "success" : true, "error" : "" }',
         ('RUB', 'BTC', 0.0): '{ "from" : "0 Russian Rubles", \
 "to" : "0 Bitcoins", "success" : true, "error" : "" }',
-        ('USD', 'EUR', 'not'): '{ "from" : "", "to" : "", \
-"success" : false, "error" : "Currency amount is invalid." }',
+        # invalid queries
         ('not', 'EUR', 2.5): '{ "from" : "", "to" : "", \
 "success" : false, "error" : "Source currency code is invalid." }',
         ('USD', 'not', 2.5): '{ "from" : "", "to" : "", \
-"success" : false, "error" : "Exchange currency code is invalid." }'
+"success" : false, "error" : "Exchange currency code is invalid." }',
+        ('USD', 'EUR', 'not'): '{ "from" : "", "to" : "", \
+"success" : false, "error" : "Currency amount is invalid." }',
+        # if there're multiple kinds of error, only the first kind returned
+        ('not', 'not', 2.5): '{ "from" : "", "to" : "", \
+"success" : false, "error" : "Source currency code is invalid." }',
+        ('not', 'EUR', 'not'): '{ "from" : "", "to" : "", \
+"success" : false, "error" : "Source currency code is invalid." }',
+        ('USD', 'not', 'not'): '{ "from" : "", "to" : "", \
+"success" : false, "error" : "Exchange currency code is invalid." }',
+        ('not', 'not', 'not'): '{ "from" : "", "to" : "", \
+"success" : false, "error" : "Source currency code is invalid." }',
     }
 
     for datum in data.keys():
@@ -147,13 +180,19 @@ def test_get_to():
     """to test if the function get_to can
     return right answers for different arguments"""
     data = {
+        # valid queries
         ('USD', 'EUR', 2.5): '2.1589225',
         ('CNY', 'JPY', 6.66): '108.27590665635',
         ('USD', 'CNY', 100.0): '685.21',
         ('KPW', 'KRW', 0.0): '0',  # be cautious that '0' != '0.0'
-        ('USD', 'EUR', 'not'): '',
+        # invalid queries
         ('not', 'EUR', 2.5): '',
-        ('USD', 'not', 2.5): ''
+        ('USD', 'not', 2.5): '',
+        ('USD', 'EUR', 'not'): '',
+        ('not', 'not', 2.5): '',
+        ('USD', 'not', 'not'): '',
+        ('not', 'EUR', 'not'): '',
+        ('not', 'not', 'not'): ''
     }
 
     for datum in data.keys():
@@ -166,14 +205,18 @@ def test_get_error():
     return right answers for different arguments"""
 
     data = {
+        # valid queries
         ('USD', 'EUR', 2.5): '',
         ('CNY', 'JPY', 6.66): '',
         ('KPW', 'KRW', 0.0): '',
-        ('USD', 'EUR', 'not'): 'Currency amount is invalid.',
+        # valid queries
         ('not', 'EUR', 2.5): 'Source currency code is invalid.',
         ('USD', 'not', 2.5): 'Exchange currency code is invalid.',
+        ('USD', 'EUR', 'not'): 'Currency amount is invalid.',
         # if there're multiple kinds of error, only return the first kind
+        ('not', 'not', 2.5): "Source currency code is invalid.",
         ('CNY', 'not', 'not'): "Exchange currency code is invalid.",
+        ('not', 'USD', 'not'): "Source currency code is invalid.",
         ('not', 'not', 'not'): "Source currency code is invalid."
     }
 
@@ -186,26 +229,46 @@ def test_exchange():
     """to test if the function exchange can
     return right answers for different arguments"""
 
-    data = {
+    data = {  # valid queries
         ('USD', 'EUR', 2.5): 2.1589225,
         ('CNY', 'JPY', 6.66): 108.27590665635,
         ('USD', 'CNY', 100.0): 685.21,
+        ('BTC', 'RUB', 10): 5015146.3823642,
         ('KPW', 'KRW', 0.0): 0.0
     }
 
     for datum in data.keys():
         assert exchange(*datum) == data[datum]
 
-    invalid_data = [('USD', 'EUR', 'not'),
-                ('not', 'EUR', 2.5),
-                ('USD', 'not', 2.5)]
+    # float('nan') returned for any invalid query
+    invalid_data = [
+        # the followings are checked by the function
+        ('none', 'EUR', 2.5),
+        ('USD', 'none', 2.5),
+        ('USD', 'EUR', 'not'),
+        ('USD', 'EUR', -1.0),
+
+        ('none', 'none', 2.5),
+        ('none', 'EUR', 'not'),
+        ('USD', 'none', 'not'),
+        ('none', 'EUR', -1.0),
+        ('USD', 'none', -1.0),
+
+        ('none', 'none', 'none'),
+        ('none', 'none', -1.0),
+        # the followings are checked by the website
+        ('not', 'EUR', 2.5),
+        ('USD', 'not', 2.5)
+    ]
+
     for invalid_datum in invalid_data:
+        result = exchange(*invalid_datum)
         # a != a implies a == float('nan')
-        assert exchange(*invalid_datum) != exchange(*invalid_datum)
+        assert result != result
 
 
 def test_all():
-    """test all cases"""
+    """test all functions"""
 
     test_currency_response()
     test_get_to()
@@ -216,3 +279,4 @@ def test_all():
 
 if __name__ == '__main__':
     test_all()
+    main()
