@@ -1,5 +1,5 @@
 '''tile.py: Module for tiling the given wall
-The wall is m * n units, and the tile is a * b units
+The wall is m * n, and the tile is a * b (unit)
 
 __author__ = 'Li Hongyu'
 __pkuid__ = '1700017785'
@@ -15,6 +15,7 @@ def tile(m, n, a, b):
     def start(wall):
         '''find the starting point: return column j, row i;
         return None if the wall has been totally tiled'''
+
         for j in range(n):
             for i in range(m):
                 if wall[j][i] == 0:
@@ -23,6 +24,7 @@ def tile(m, n, a, b):
     def check(direction, a, b):
         '''check if the tile can be tiled horizontally/vertically
         direction: 'h'(means horizontally) / 'v'(means vertically)'''
+
         if direction != 'h':
             a, b = b, a
         try:
@@ -36,19 +38,22 @@ def tile(m, n, a, b):
 
     def work(mode, direction, a, b):
         '''do/undo the work of tiling
-        (change the state of recording points)
+        (by change the state of recording points)
         mode: 'd'(means do the work of tiling) -> from 0 to 1
            or 'u'(means undo) -> from 1 to 0
         direction: 'h'(means horizontally) / 'v'(means vertically)'''
+
         if direction != 'h':
             a, b = b, a
         if mode == 'd':
             for j in range(j0, j0 + b):
                 for i in range(i0, i0 + a):
                     wall[j][i] = 1
-            answer.append(tuple(
-                sorted([(m * j + i) for i in range(i0, i0 + a)
-                        for j in range(j0, j0 + b)])))
+            answer.append(tuple(sorted(
+                [(m * j + i) for i in range(i0, i0 + a)
+                 for j in range(j0, j0 + b)]
+            )))
+        # undo: take the tile off
         else:
             for j in range(j0, j0 + b):
                 for i in range(i0, i0 + a):
@@ -80,7 +85,9 @@ def tile(m, n, a, b):
 
 
 def draw_wall(m, n):
-    '''draw the wall with grid lines'''
+    '''draw the wall with grid lines
+    This function draw the gird lines like a snake
+    caused this method may be more time-saving'''
 
     def number():
         t.up()
@@ -121,43 +128,44 @@ def draw_tiles(results):
 
     def rectangle(tile):
         '''draw the boundary of one tile
-        tile: a tuple representing a '''
+        tile: a tuple representing a tile'''
 
         # go to the lower left cornor of the rectangle
         t.up()
-        t.goto(tile[0] % m * side, tile[0]//m * side)
+        t.goto(tile[0] % m * side, tile[0] // m * side)
         t.down()
         # draw the rectangle
-        # (find if the tile is placed horizontally / vertically by calculating)
+        # (find if the tile is placed horizontally/vertically by calculating)
         small, large = min(a, b), max(a, b)
-        if tile[0] + large - 1 in tile and large <= m:  # length >= width
-            length, weigth = large, small
+        if (tile[0] + large - 1 in tile) and (large <= m):  # length >= width
+            length, width = large, small
         else:
-            length, weigth = small, large
+            length, width = small, large
 
         for i in range(2):
             t.forward(length * side)
             t.left(90)
-            t.forward(weigth * side)
+            t.forward(width * side)
             t.left(90)
-        # go back to the origin
-        t.up()
-        t.home()
-        t.down()
 
     t.pencolor('black')
     t.pensize(5)
     # choose which kind of piling method to be visulized
     if results:
-        no = int(w.numinput('Visualization',
-                            'Input number of 0 - {}'.format(len(results) - 1),
-                            None, 0, len(results) - 1)
-                 )
+        no = int(w.numinput(
+            'Visualization',
+            'Input number of 0 - {}'.format(len(results) - 1),
+            None, 0, len(results) - 1)
+        )
         result = results[no]
         for tile in result:  # draw the boundary of each tile
             rectangle(sorted(tile))
-    else:
-        print('No proper method of piling found!')
+        # go back to the origin
+        t.up()
+        t.home()
+        t.down()
+    else:  # results is an empty list, meaning you cannot tile
+        print('No proper method of tiling found!')
 
 
 def main(m, n, a, b):
@@ -187,6 +195,6 @@ if __name__ == '__main__':
 
     side = 50
     w = turtle.Screen()
-    t = turtle.Turtle(visible=False)
+    t = turtle.Turtle(visible = False)
 
     main(m, n, a, b)
