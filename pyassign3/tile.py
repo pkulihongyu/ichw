@@ -1,4 +1,5 @@
-'''tile.py: tile the wall
+'''tile.py: Module for tiling the given wall
+The wall is m * n units, and the tile is a * b units
 
 __author__ = 'Li Hongyu'
 __pkuid__ = '1700017785'
@@ -20,7 +21,7 @@ def tile(m, n, a, b):
                     return j, i
 
     def check(direction, a, b):
-        '''check if the pile can be piled horizontally/vertically
+        '''check if the tile can be tiled horizontally/vertically
         direction: 'h'(means horizontally) / 'v'(means vertically)'''
         if direction != 'h':
             a, b = b, a
@@ -72,11 +73,10 @@ def tile(m, n, a, b):
         work('u', 'v', a, b)
 
 
-def main(m, n, a, b):
-    '''call the function tile and print the answers'''
-    tile(m, n, a, b)
-    for i in range(len(results)):
-        print(i, results[i])
+####################################
+# Above is the part of calculating.
+# Below is the part of visulization.
+####################################
 
 
 def draw_wall(m, n):
@@ -119,17 +119,18 @@ def draw_wall(m, n):
 def draw_tiles(results):
     '''draw the boundaries of all the tiles'''
 
-    def rectangle(pile):
-        '''draw the boundary of one tile'''
+    def rectangle(tile):
+        '''draw the boundary of one tile
+        tile: a tuple representing a '''
 
         # go to the lower left cornor of the rectangle
         t.up()
-        t.goto(pile[0] % m * side, pile[0]//m * side)
+        t.goto(tile[0] % m * side, tile[0]//m * side)
         t.down()
         # draw the rectangle
         # (find if the tile is placed horizontally / vertically by calculating)
         small, large = min(a, b), max(a, b)
-        if pile[0] + large - 1 in pile and large <= m:  # length >= width
+        if tile[0] + large - 1 in tile and large <= m:  # length >= width
             length, weigth = large, small
         else:
             length, weigth = small, large
@@ -153,19 +154,24 @@ def draw_tiles(results):
                             None, 0, len(results) - 1)
                  )
         result = results[no]
-        for pile in result:  # draw the boundary of each tile
-            rectangle(sorted(pile))
+        for tile in result:  # draw the boundary of each tile
+            rectangle(sorted(tile))
     else:
         print('No proper method of piling found!')
 
 
-def main_draw():
-    turtle.hideturtle()
-    # use the larger coordinate to prevent the graph from:
-    # 1) beyong the screen; 2) be distorted into rectangle from square
+def main(m, n, a, b):
+    '''call the function tile and print the answers,
+    then use turtle to visualize one of them'''
+
+    tile(m, n, a, b)
+    for i in range(len(results)):
+        print(i, results[i])
+
+    # use the larger as the border to prevent the graph from being:
+    # 1) beyong the screen; 2) distorted into rectangle from square
     border = max(m * side + 50, n * side + 50)
     w.setworldcoordinates(-50, -50, border, border)
-    # w.screensize(2 * m * side + 100, 2 * n * side + 100)
     t.speed(0)
     draw_wall(m, n)
     draw_tiles(results)
@@ -173,14 +179,14 @@ def main_draw():
 
 
 if __name__ == '__main__':
-    m, n, a, b = int(input('m: ')), int(
-        input('n: ')), int(input('a: ')), int(input('b: '))
+    m, n, a, b = int(input('m: ')), int(input('n: ')), \
+        int(input('a: ')), int(input('b: '))
     wall = [[0] * m for i in range(n)]
     # be cautious that list repetition means reference but not copy!!!!!
     results, answer = [], []
-    main(m, n, a, b)
 
     side = 50
     w = turtle.Screen()
-    t = turtle.Turtle()
-    main_draw()
+    t = turtle.Turtle(visible=False)
+
+    main(m, n, a, b)
