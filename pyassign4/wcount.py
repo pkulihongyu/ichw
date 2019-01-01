@@ -2,7 +2,8 @@
 
 __author__ = 'Li Hongyu'
 __pkuid__ = '1700017785'
-__email__ = 'hongyuli@pku.edu.cn'"""
+__email__ = 'hongyuli@pku.edu.cn'
+"""
 
 import sys
 from urllib.request import urlopen
@@ -25,7 +26,18 @@ def wcount(lines, topn=10):
         else:
             new_lines += lines[i]
 
-    words = new_lines.split()
+    words = []
+    for word in new_lines.split():
+        # remove seperate - and '
+        if word in "'-":
+            continue
+        # change words like alice's back to alice
+        if word[-2:] == "'s":
+            words.append(word[:-2].strip("'"))
+        # remove ' as quotes but not ' as apostrophes
+        else:
+            words.append(word.strip("'"))
+
     vocabulary = set(words)
     for word in vocabulary:
         times[word] = words.count(word)
